@@ -155,6 +155,9 @@ input::placeholder{color:var(--t3);}
       <span class="signout" onclick="signOut()">로그아웃</span>
     </div>
 
+    <!-- 채널 전환 바 -->
+    <div class="channel-bar" id="channelBar"></div>
+
     <div class="divider"></div>
 
     <!-- STEP 3: 영상 선택 -->
@@ -219,6 +222,10 @@ input::placeholder{color:var(--t3);}
 <script>
 let accessToken = null;
 let defaultLang = 'ko';
+let channels = [];
+let activeChannelIdx = 0;
+let tokenClientRef = null;
+let extraTokens = {};
 
 function selectLang(btn, lang) {
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
@@ -246,12 +253,78 @@ function initGoogleAuth() {
       if (resp.error) { alert('로그인 실패: ' + resp.error); return; }
       accessToken = resp.access_token;
       await loadUserInfo();
+      const ch = await getChannelInfo(accessToken);
+      const u = await (await fetch('https://www.googleapis.com/oauth2/v2/userinfo', { headers: { Authorization: 'Bearer ' + accessToken } })).json();
+      channels = [{ ...u, ...ch, token: accessToken }];
+      activeChannelIdx = 0;
+      renderChannelBar();
       await loadVideos();
       document.getElementById('clientIdBox').style.display = 'none';
       document.getElementById('userSection').classList.add('visible');
     }
   });
   tokenClient.requestAccessToken();
+}
+
+async function addChannel() {
+  const clientId = document.getElementById('clientId').value.trim() || localStorage.getItem('yt_client_id');
+  if (!clientId) { alert('Client ID를 먼저 입력해주세요.'); return; }
+  const tc = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: 'https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    prompt: 'select_account',
+    callback: async (resp) => {
+      if (resp.error) { alert('로그인 실패: ' + resp.error); return; }
+      const token = resp.access_token;
+      const u = await (await fetch('https://www.googleapis.com/oauth2/v2/userinfo', { headers: { Authorization: 'Bearer ' + token } })).json();
+      const ch = await getChannelInfo(token);
+      if (channels.find(c => c.channelId === ch.channelId)) {
+        alert('이미 추가된 채널이에요!'); return;
+      }
+      channels.push({ ...u, ...ch, token });
+      renderChannelBar();
+      switchChannel(channels.length - 1);
+    }
+  });
+  tc.requestAccessToken();
+}
+
+async function getChannelInfo(token) {
+  const res = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  const data = await res.json();
+  const ch = data.items?.[0];
+  return { channelId: ch?.id || '', channelName: ch?.snippet?.title || '', channelThumb: ch?.snippet?.thumbnails?.default?.url || '' };
+}
+
+function renderChannelBar() {
+  const bar = document.getElementById('channelBar');
+  bar.innerHTML = '';
+  channels.forEach((ch, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'channel-chip' + (idx === activeChannelIdx ? ' active' : '');
+    chip.innerHTML = `<img src="${ch.channelThumb || ''}" alt="" onerror="this.style.display='none'" />${ch.channelName || ch.name}`;
+    chip.onclick = () => switchChannel(idx);
+    bar.appendChild(chip);
+  });
+  const addBtn = document.createElement('div');
+  addBtn.className = 'add-channel';
+  addBtn.innerHTML = '+ 채널 추가';
+  addBtn.onclick = addChannel;
+  bar.appendChild(addBtn);
+}
+
+async function switchChannel(idx) {
+  activeChannelIdx = idx;
+  accessToken = channels[idx].token;
+  renderChannelBar();
+  // 영상 목록 새로고침
+  nextPageToken = null;
+  selectedVideoId = null;
+  selectedVideoTitle = null;
+  document.getElementById('videoList').innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--t3);padding:12px 0;"><span class=\"loading-spinner\"></span> 영상 목록 불러오는 중...</div>';
+  await loadVideos();
 }
 
 async function loadUserInfo() {
@@ -321,8 +394,11 @@ function selectVideo(card, vid, title) {
 
 function signOut() {
   accessToken = null;
+  channels = [];
+  activeChannelIdx = 0;
   selectedVideoId = null;
   translationData = null;
+  document.getElementById('channelBar').innerHTML = '';
   document.getElementById('userSection').classList.remove('visible');
   document.getElementById('clientIdBox').style.display = 'block';
 }

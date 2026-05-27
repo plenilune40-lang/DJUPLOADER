@@ -381,9 +381,31 @@ async function startUpload() {
   document.getElementById('logBox').innerHTML = '';
   document.getElementById('uploadBtn').disabled = true;
 
+  log('▶ 영상 정보 불러오는 중...', 'info');
+  document.getElementById('progFill').style.width = '20%';
+
+  // 기존 영상 snippet 먼저 가져오기
+  let existingSnippet = null;
+  try {
+    const infoRes = await fetch(
+      'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' + selectedVideoId,
+      { headers: { 'Authorization': 'Bearer ' + accessToken } }
+    );
+    const infoData = await infoRes.json();
+    existingSnippet = infoData.items?.[0]?.snippet || null;
+  } catch(e) {
+    log('✗ 영상 정보 불러오기 실패: ' + e.message, 'err');
+  }
+
+  if (!existingSnippet) {
+    showResult('error', '영상 정보를 불러올 수 없어요.');
+    document.getElementById('uploadBtn').disabled = false;
+    return;
+  }
+
   log('▶ 모든 언어 한 번에 업로드 중...', 'info');
   document.getElementById('progCount').textContent = langs.length + '개 언어';
-  document.getElementById('progFill').style.width = '30%';
+  document.getElementById('progFill').style.width = '50%';
 
   // 모든 언어를 하나의 localizations 객체에 담기
   const localizations = {};
@@ -396,6 +418,9 @@ async function startUpload() {
     id: selectedVideoId,
     localizations,
     snippet: {
+      title: existingSnippet.title,
+      description: existingSnippet.description,
+      categoryId: existingSnippet.categoryId,
       defaultLanguage: defaultLang
     }
   };

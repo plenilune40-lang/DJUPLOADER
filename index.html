@@ -364,37 +364,32 @@ async function startUpload() {
   document.getElementById('logBox').innerHTML = '';
   document.getElementById('uploadBtn').disabled = true;
 
-  let done = 0, success = 0, fail = 0;
-  const total = langs.length;
+  log('▶ 모든 언어 한 번에 업로드 중...', 'info');
+  document.getElementById('progCount').textContent = langs.length + '개 언어';
 
-  for (const lang of langs) {
+  // 모든 언어를 하나의 localizations 객체에 담기
+  const localizations = {};
+  langs.forEach(lang => {
     const t = translations[lang];
-    const body = {
-      id: selectedVideoId,
-      localizations: {
-        [lang]: { title: t.title || '', description: t.description || '' }
-      }
-    };
-    try {
-      const res = await fetch(
-        'https://www.googleapis.com/youtube/v3/videos?part=localizations',
-        { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken }, body: JSON.stringify(body) }
-      );
-      if (res.ok) { success++; log('✓ ' + lang + ' 완료', 'ok'); }
-      else {
-        const err = await res.json().catch(() => ({}));
-        fail++;
-        log('✗ ' + lang + ' 실패: ' + (err.error?.message || res.status), 'err');
-      }
-    } catch(e) {
-      fail++;
-      log('✗ ' + lang + ' 오류', 'err');
+    localizations[lang] = { title: t.title || '', description: t.description || '' };
+  });
+
+  const body = { id: selectedVideoId, localizations };
+
+  try {
+    const res = await fetch(
+      'https://www.googleapis.com/youtube/v3/videos?part=localizations',
+      { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken }, body: JSON.stringify(body) }
+    );
+    document.getElementById('progFill').style.width = '100%';
+    if (res.ok) {
+      langs.forEach(lang => log('✓ ' + lang, 'ok'));
+    } else {
+      const err = await res.json().catch(() => ({}));
+      log('✗ 실패: ' + (err.error?.message || res.status), 'err');
     }
-    done++;
-    const pct = Math.round((done / total) * 100);
-    document.getElementById('progFill').style.width = pct + '%';
-    document.getElementById('progCount').textContent = done + ' / ' + total;
-    await new Promise(r => setTimeout(r, 120));
+  } catch(e) {
+    log('✗ 네트워크 오류: ' + e.message, 'err');
   }
 
   document.getElementById('uploadBtn').disabled = false;

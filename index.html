@@ -411,7 +411,10 @@ async function startUpload() {
   const localizations = {};
   langs.forEach(lang => {
     const t = translations[lang];
-    localizations[lang] = { title: t.title || '', description: t.description || '' };
+    localizations[lang] = {
+      title: t.title || existingSnippet.title,
+      description: t.description || ''
+    };
   });
 
   const body = {

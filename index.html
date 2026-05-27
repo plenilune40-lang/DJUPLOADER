@@ -328,20 +328,20 @@ function removeChannel(idx) {
 async function switchChannel(idx) {
   activeChannelIdx = idx;
   accessToken = channels[idx].token;
-  renderChannelBar();
-  const nameEl = document.getElementById('activeChannelName');
-  if (nameEl) nameEl.textContent = channels[idx].channelName || channels[idx].name || '';
-  // 영상 목록 새로고침
   nextPageToken = null;
   selectedVideoId = null;
   selectedVideoTitle = null;
+
+  renderChannelBar();
+
+  const nameEl = document.getElementById('activeChannelName');
+  if (nameEl) nameEl.textContent = channels[idx].channelName || channels[idx].name || '';
+
   const vl = document.getElementById('videoList');
-  vl.innerHTML = '';
-  const loading = document.createElement('div');
-  loading.style.cssText = 'font-family:var(--mono);font-size:12px;color:var(--t3);padding:12px 0;';
-  loading.innerHTML = '<span class="loading-spinner"></span> 영상 목록 불러오는 중...';
-  vl.appendChild(loading);
-  await loadVideos();
+  vl.innerHTML = '<div style="font-family:'DM Mono',monospace;font-size:12px;color:rgba(240,237,232,0.28);padding:12px 0;">불러오는 중...</div>';
+  document.getElementById('loadMoreWrap').style.display = 'none';
+
+  await loadVideos(false);
 }
 
 async function loadUserInfo() {

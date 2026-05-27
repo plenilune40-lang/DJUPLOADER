@@ -315,7 +315,7 @@ function renderChannelBar() {
 }
 
 async function loadVideos() {
-  const url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&forMine=true&type=video&maxResults=12&order=date'
+  const url = 'https://www.googleapis.com/youtube/v3/videos?part=snippet&mine=true&maxResults=12'
     + (nextPage ? '&pageToken=' + nextPage : '');
   const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
   const data = await res.json();
@@ -332,7 +332,7 @@ async function loadVideos() {
   }
 
   data.items.forEach(item => {
-    const vid = item.id.videoId;
+    const vid = item.id;
     const title = item.snippet.title;
     const thumb = item.snippet.thumbnails?.medium?.url || '';
     const date = item.snippet.publishedAt?.slice(0,10) || '';
@@ -359,7 +359,7 @@ async function loadVideos() {
 
 async function loadMore() {
   document.getElementById('loadMoreBtn').innerHTML = '<span class="spinner"></span>불러오는 중...';
-  const url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&forMine=true&type=video&maxResults=12&order=date'
+  const url = 'https://www.googleapis.com/youtube/v3/videos?part=snippet&mine=true&maxResults=12'
     + (nextPage ? '&pageToken=' + nextPage : '');
   const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
   const data = await res.json();
@@ -368,7 +368,7 @@ async function loadMore() {
   document.getElementById('loadMoreBtn').textContent = '더 불러오기';
   const list = document.getElementById('videoList');
   (data.items || []).forEach(item => {
-    const vid = item.id.videoId;
+    const vid = item.id;
     const title = item.snippet.title;
     const thumb = item.snippet.thumbnails?.medium?.url || '';
     const date = item.snippet.publishedAt?.slice(0,10) || '';

@@ -183,6 +183,16 @@ input::placeholder{color:var(--t3);}
       </div>
     </div>
 
+    <!-- STEP 4.5: 기본 언어 선택 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">④ 기본 언어 설정</div>
+      <div style="display:flex;gap:8px;">
+        <button class="lang-btn active" data-lang="ko" onclick="selectLang(this,'ko')">🇰🇷 한국어</button>
+        <button class="lang-btn" data-lang="en" onclick="selectLang(this,'en')">🇺🇸 English</button>
+        <button class="lang-btn" data-lang="ja" onclick="selectLang(this,'ja')">🇯🇵 日本語</button>
+      </div>
+    </div>
+
     <!-- STEP 5: 업로드 -->
     <button class="btn btn-red btn-full" id="uploadBtn" onclick="startUpload()">
       번역 업로드 시작 →
@@ -208,6 +218,13 @@ input::placeholder{color:var(--t3);}
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script>
 let accessToken = null;
+let defaultLang = 'ko';
+
+function selectLang(btn, lang) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  defaultLang = lang;
+}
 let selectedVideoId = null;
 let selectedVideoTitle = null;
 let translationData = null;
@@ -366,6 +383,7 @@ async function startUpload() {
 
   log('▶ 모든 언어 한 번에 업로드 중...', 'info');
   document.getElementById('progCount').textContent = langs.length + '개 언어';
+  document.getElementById('progFill').style.width = '30%';
 
   // 모든 언어를 하나의 localizations 객체에 담기
   const localizations = {};
@@ -374,11 +392,17 @@ async function startUpload() {
     localizations[lang] = { title: t.title || '', description: t.description || '' };
   });
 
-  const body = { id: selectedVideoId, localizations };
+  const body = {
+    id: selectedVideoId,
+    localizations,
+    snippet: {
+      defaultLanguage: defaultLang
+    }
+  };
 
   try {
     const res = await fetch(
-      'https://www.googleapis.com/youtube/v3/videos?part=localizations',
+      'https://www.googleapis.com/youtube/v3/videos?part=localizations,snippet',
       { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken }, body: JSON.stringify(body) }
     );
     document.getElementById('progFill').style.width = '100%';
@@ -393,8 +417,12 @@ async function startUpload() {
   }
 
   document.getElementById('uploadBtn').disabled = false;
-  if (fail === 0) showResult('success', '✓ ' + success + '개 언어 모두 업로드 완료!');
-  else showResult('error', success + '개 성공, ' + fail + '개 실패. 로그를 확인해주세요.');
+  const hasError = document.getElementById('logBox').querySelector('.log-err');
+  if (!hasError) {
+    showResult('success', '✓ ' + langs.length + '개 언어 모두 업로드 완료!');
+  } else {
+    showResult('error', '일부 실패했어요. 위 로그를 확인해주세요.');
+  }
 }
 
 function log(msg, type) {

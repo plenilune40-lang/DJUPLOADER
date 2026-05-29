@@ -336,6 +336,7 @@ textarea{resize:vertical;}
 <script>
 let token=null, channels=[], activeCh=0, nextPage=null, selectedVid=null;
 let jsonData=null, defaultLang='en', currentMode='json';
+let uploadsPlaylistId=null;
 
 const LANG_LIST=[
   ['ko','한국어'],['en','영어'],['ja','일본어'],['zh-Hans','중국어(간체)'],['zh-Hant','중국어(번체)'],
@@ -425,7 +426,7 @@ function addChannel(){
 }
 
 async function switchChannel(idx){
-  activeCh=idx; token=channels[idx].token; nextPage=null; selectedVid=null;
+  activeCh=idx; token=channels[idx].token; nextPage=null; selectedVid=null; uploadsPlaylistId=null;
   renderSideChannels(); updateBadge();
   document.getElementById('videoList').innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;"><span class="spinner"></span>영상 불러오는 중...</div>';
   document.getElementById('loadMoreWrap').classList.add('hidden');
@@ -464,22 +465,23 @@ function updateBadge(){
 async function loadVideos(){
   const list=document.getElementById('videoList');
   list.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;"><span class="spinner"></span>영상 불러오는 중...</div>';
-  
-  // 먼저 채널 ID 가져오기
   try{
-    const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true',{headers:{Authorization:'Bearer '+token}});
-    const chData=await chRes.json();
-    const uploadsId=chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
-    
-    if(!uploadsId){
+    if(!uploadsPlaylistId){
+      const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true',{headers:{Authorization:'Bearer '+token}});
+      const chData=await chRes.json();
+      uploadsPlaylistId=chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads||null;
+    }
+    if(!uploadsPlaylistId){
       list.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;">채널 정보를 불러올 수 없어요.</div>';
       return;
     }
-
-    // 업로드 플레이리스트에서 영상 가져오기
-    const url='https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsId+'&maxResults=12'+(nextPage?'&pageToken='+nextPage:'');
+    const url='https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsPlaylistId+'&maxResults=12';
     const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
     const data=await res.json();
+    if(data.error){
+      list.innerHTML='<div style="font-size:13px;color:var(--red);padding:8px 0;">API 오류: '+data.error.message+'</div>';
+      return;
+    }
     nextPage=data.nextPageToken||null;
     document.getElementById('loadMoreWrap').classList.toggle('hidden',!nextPage);
     list.innerHTML='';
@@ -487,11 +489,7 @@ async function loadVideos(){
       list.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;">업로드된 영상이 없어요.</div>';
       return;
     }
-    // playlistItems 형식에 맞게 변환
-    const items=data.items.map(item=>({
-      id: item.snippet.resourceId.videoId,
-      snippet: item.snippet
-    }));
+    const items=data.items.map(item=>({id:item.snippet.resourceId.videoId,snippet:item.snippet}));
     appendCards(list,items);
   }catch(e){
     list.innerHTML='<div style="font-size:13px;color:var(--red);padding:8px 0;">오류: '+e.message+'</div>';
@@ -501,11 +499,8 @@ async function loadVideos(){
 async function loadMore(){
   document.getElementById('loadMoreBtn').innerHTML='<span class="spinner"></span>불러오는 중...';
   try{
-    const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true',{headers:{Authorization:'Bearer '+token}});
-    const chData=await chRes.json();
-    const uploadsId=chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
-    if(!uploadsId) return;
-    const url='https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsId+'&maxResults=12'+(nextPage?'&pageToken='+nextPage:'');
+    if(!uploadsPlaylistId) return;
+    const url='https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsPlaylistId+'&maxResults=12'+(nextPage?'&pageToken='+nextPage:'');
     const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
     const data=await res.json();
     nextPage=data.nextPageToken||null;

@@ -283,13 +283,17 @@ textarea{resize:vertical;}
 
         <!-- AI 모드 -->
         <div id="mode-ai" class="hidden">
+          <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;color:var(--red);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            위에서 영상을 선택하면 제목과 설명이 자동으로 채워져요
+          </div>
           <div style="margin-bottom:12px;">
             <div class="field-label">번역할 제목</div>
-            <input type="text" id="origTitle" placeholder="영상 제목을 입력하세요"/>
+            <input type="text" id="origTitle" placeholder="영상을 선택하거나 직접 입력하세요"/>
           </div>
           <div style="margin-bottom:12px;">
             <div class="field-label">번역할 설명 (선택)</div>
-            <textarea id="origDesc" placeholder="영상 설명을 입력하세요" rows="3"></textarea>
+            <textarea id="origDesc" placeholder="영상을 선택하거나 직접 입력하세요" rows="3"></textarea>
           </div>
           <div>
             <div class="field-label">Claude API Key</div>
@@ -522,7 +526,15 @@ function appendCards(el,items){
 
     card.onclick=()=>{
       document.querySelectorAll('.video-card').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected'); selectedVid=vid;
+      card.classList.add('selected');
+      selectedVid=vid;
+      // AI 모드면 제목/설명 자동 채우기
+      if(currentMode==='ai'){
+        const t=document.getElementById('origTitle');
+        const d=document.getElementById('origDesc');
+        if(t) t.value=title||'';
+        if(d) d.value=item.snippet.description||'';
+      }
     };
     el.appendChild(card);
   });

@@ -303,8 +303,8 @@ textarea{resize:vertical;}
       <div class="card">
         <div class="card-head"><div class="step-num">3</div><div class="card-title">원본(기본) 언어</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="lang-btn active" onclick="setLang(this,'ko')">🇰🇷 한국어</button>
-          <button class="lang-btn" onclick="setLang(this,'en')">🇺🇸 English</button>
+          <button class="lang-btn" onclick="setLang(this,'ko')">🇰🇷 한국어</button>
+          <button class="lang-btn active" onclick="setLang(this,'en')">🇺🇸 English</button>
           <button class="lang-btn" onclick="setLang(this,'ja')">🇯🇵 日本語</button>
         </div>
       </div>
@@ -335,7 +335,7 @@ textarea{resize:vertical;}
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 let token=null, channels=[], activeCh=0, nextPage=null, selectedVid=null;
-let jsonData=null, defaultLang='ko', currentMode='json';
+let jsonData=null, defaultLang='en', currentMode='json';
 
 const LANG_LIST=[
   ['ko','한국어'],['en','영어'],['ja','일본어'],['zh-Hans','중국어(간체)'],['zh-Hant','중국어(번체)'],
@@ -495,6 +495,17 @@ function appendCards(el,items){
     const card=document.createElement('div');
     card.className='video-card';
     card.innerHTML=`<img class="video-thumb" src="${thumb}" alt=""/><div class="video-info"><div class="video-title">${escHtml(title)}</div><div class="video-meta">${date}</div></div><div class="vcheck"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+    // 유튜브 링크 버튼 별도 추가
+    const ytBtn = document.createElement('a');
+    ytBtn.href='https://www.youtube.com/watch?v='+vid;
+    ytBtn.target='_blank';
+    ytBtn.title='유튜브에서 보기';
+    ytBtn.style.cssText='flex-shrink:0;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--t2);transition:background .15s;';
+    ytBtn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>';
+    ytBtn.addEventListener('click', e=>e.stopPropagation());
+    ytBtn.addEventListener('mouseover',()=>{ytBtn.style.background='var(--hover)';ytBtn.style.color='var(--text)';});
+    ytBtn.addEventListener('mouseout',()=>{ytBtn.style.background='var(--surface2)';ytBtn.style.color='var(--t2)';});
+    card.insertBefore(ytBtn, card.querySelector('.vcheck'));
     card.onclick=()=>{
       document.querySelectorAll('.video-card').forEach(c=>c.classList.remove('selected'));
       card.classList.add('selected'); selectedVid=vid;

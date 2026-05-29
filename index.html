@@ -176,11 +176,67 @@ textarea{resize:vertical;}
     <div class="login-logo">
       <span style="font-size:22px;font-weight:700;">Translation <span style="color:var(--red);">Uploader</span></span>
     </div>
-    <div class="login-title">로그인</div>
-    <div class="login-sub">유튜브 영상에 다국어 번역을<br/>한 번에 자동으로 올려보세요</div>
+    <div class="login-title">Translation Uploader</div>
+    <div class="login-sub">유튜브 영상에 다국어 번역을 한 번에 자동으로 올려보세요</div>
+
+    <!-- 안내 단계 -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">시작하기 전에 — Google Client ID 발급 방법</div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+          <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px;">1</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:2px;">Google Cloud Console 접속</div>
+            <div style="font-size:12px;color:var(--t3);">
+              <a href="https://console.cloud.google.com" target="_blank" style="color:var(--red);text-decoration:none;">console.cloud.google.com</a> 접속 → 새 프로젝트 생성
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+          <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px;">2</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:2px;">YouTube Data API v3 활성화</div>
+            <div style="font-size:12px;color:var(--t3);">API 및 서비스 → 라이브러리 → YouTube Data API v3 → 사용 설정</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+          <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px;">3</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:2px;">OAuth 동의 화면 설정</div>
+            <div style="font-size:12px;color:var(--t3);">API 및 서비스 → OAuth 동의 화면 → 외부 선택 → 앱 이름/이메일 입력 → 저장</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+          <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px;">4</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:2px;">OAuth 2.0 Client ID 발급</div>
+            <div style="font-size:12px;color:var(--t3);">사용자 인증 정보 → 사용자 인증 정보 만들기 → OAuth 클라이언트 ID → 웹 애플리케이션 선택</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+          <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px;">5</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:2px;">승인된 JavaScript 출처 추가</div>
+            <div style="font-size:12px;color:var(--t3);">승인된 JavaScript 출처에 아래 주소 추가 후 저장:</div>
+            <div style="font-size:11px;font-family:monospace;background:var(--bg);border-radius:4px;padding:4px 8px;margin-top:4px;color:var(--red);word-break:break-all;">https://plenilune40-lang.github.io</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 접기/펼치기 힌트 -->
+      <div style="font-size:12px;color:var(--t3);margin-top:10px;text-align:center;">
+        발급된 Client ID를 아래에 붙여넣고 로그인하세요
+      </div>
+    </div>
+
     <div class="field-label" style="margin-bottom:6px;">Google OAuth Client ID</div>
     <input type="text" id="clientId" placeholder="123456789-xxx.apps.googleusercontent.com" style="margin-bottom:8px;"/>
-    <p class="hint" style="margin-bottom:20px;"><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> → OAuth 2.0 클라이언트 ID</p>
+    <p class="hint" style="margin-bottom:20px;"><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> → 사용자 인증 정보에서 확인</p>
     <button class="btn btn-red btn-full" onclick="doLogin()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
       Google 계정으로 로그인
@@ -606,7 +662,19 @@ async function doAiUpload(){
   setProgress(10,LANG_LIST.length+'개 언어 번역 중...');
   addLog('logBox','▶ Claude AI로 번역 중...','info');
   const langStr=LANG_LIST.map(([c,n])=>c+':'+n).join(', ');
-  const prompt=`아래 내용을 다음 언어 코드들로 번역해주세요: ${langStr}\n\n원본 제목: ${origTitle}\n원본 설명: ${origDesc||'(없음)'}\n\n반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요:\n{"translations":{"ko":{"title":"...","description":"..."},"en":{"title":"...","description":"..."},...}}`;
+  const prompt=`아래 내용을 다음 언어 코드들로 번역해주세요: ${langStr}
+
+원본 제목: ${origTitle}
+원본 설명: ${origDesc||'(없음)'}
+
+번역 규칙:
+1. 제목은 반드시 100자 이내로 작성하세요.
+2. 번역된 제목이 100자를 초과하면 핵심 의미는 유지하면서 중요하지 않은 수식어, 부사, 접속사 등을 먼저 줄여주세요.
+3. 그래도 100자를 초과하면 핵심 키워드 위주로만 남기고 나머지는 생략하세요.
+4. 설명은 길이 제한 없이 자연스럽게 번역하세요.
+
+반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요:
+{"translations":{"ko":{"title":"...","description":"..."},"en":{"title":"...","description":"..."},...}}`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',

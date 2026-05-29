@@ -528,13 +528,11 @@ function appendCards(el,items){
       document.querySelectorAll('.video-card').forEach(c=>c.classList.remove('selected'));
       card.classList.add('selected');
       selectedVid=vid;
-      // AI 모드면 제목/설명 자동 채우기
-      if(currentMode==='ai'){
-        const t=document.getElementById('origTitle');
-        const d=document.getElementById('origDesc');
-        if(t) t.value=title||'';
-        if(d) d.value=item.snippet.description||'';
-      }
+      // 항상 제목/설명 채우기 (AI 탭에서 바로 보임)
+      const tEl=document.getElementById('origTitle');
+      const dEl=document.getElementById('origDesc');
+      if(tEl) tEl.value=item.snippet.title||'';
+      if(dEl) dEl.value=item.snippet.description||'';
     };
     el.appendChild(card);
   });

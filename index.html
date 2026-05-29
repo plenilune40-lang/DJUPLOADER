@@ -462,29 +462,58 @@ function updateBadge(){
 
 // 영상 로딩
 async function loadVideos(){
-  const url='https://www.googleapis.com/youtube/v3/videos?part=snippet&mine=true&maxResults=12'+(nextPage?'&pageToken='+nextPage:'');
-  const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
-  const data=await res.json();
-  nextPage=data.nextPageToken||null;
-  document.getElementById('loadMoreWrap').classList.toggle('hidden',!nextPage);
   const list=document.getElementById('videoList');
-  list.innerHTML='';
-  if(!data.items||!data.items.length){
-    list.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;">업로드된 영상이 없어요.</div>';
-    return;
+  list.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;"><span class="spinner"></span>영상 불러오는 중...</div>';
+  
+  // 먼저 채널 ID 가져오기
+  try{
+    const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true',{headers:{Authorization:'Bearer '+token}});
+    const chData=await chRes.json();
+    const uploadsId=chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+    
+    if(!uploadsId){
+      list.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;">채널 정보를 불러올 수 없어요.</div>';
+      return;
+    }
+
+    // 업로드 플레이리스트에서 영상 가져오기
+    const url='https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsId+'&maxResults=12'+(nextPage?'&pageToken='+nextPage:'');
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
+    const data=await res.json();
+    nextPage=data.nextPageToken||null;
+    document.getElementById('loadMoreWrap').classList.toggle('hidden',!nextPage);
+    list.innerHTML='';
+    if(!data.items||!data.items.length){
+      list.innerHTML='<div style="font-size:13px;color:var(--t3);padding:8px 0;">업로드된 영상이 없어요.</div>';
+      return;
+    }
+    // playlistItems 형식에 맞게 변환
+    const items=data.items.map(item=>({
+      id: item.snippet.resourceId.videoId,
+      snippet: item.snippet
+    }));
+    appendCards(list,items);
+  }catch(e){
+    list.innerHTML='<div style="font-size:13px;color:var(--red);padding:8px 0;">오류: '+e.message+'</div>';
   }
-  appendCards(list,data.items);
 }
 
 async function loadMore(){
   document.getElementById('loadMoreBtn').innerHTML='<span class="spinner"></span>불러오는 중...';
-  const url='https://www.googleapis.com/youtube/v3/videos?part=snippet&mine=true&maxResults=12'+(nextPage?'&pageToken='+nextPage:'');
-  const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
-  const data=await res.json();
-  nextPage=data.nextPageToken||null;
-  document.getElementById('loadMoreWrap').classList.toggle('hidden',!nextPage);
-  document.getElementById('loadMoreBtn').textContent='더 불러오기';
-  appendCards(document.getElementById('videoList'),data.items||[]);
+  try{
+    const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true',{headers:{Authorization:'Bearer '+token}});
+    const chData=await chRes.json();
+    const uploadsId=chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+    if(!uploadsId) return;
+    const url='https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsId+'&maxResults=12'+(nextPage?'&pageToken='+nextPage:'');
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
+    const data=await res.json();
+    nextPage=data.nextPageToken||null;
+    document.getElementById('loadMoreWrap').classList.toggle('hidden',!nextPage);
+    document.getElementById('loadMoreBtn').textContent='더 불러오기';
+    const items=data.items.map(item=>({id:item.snippet.resourceId.videoId,snippet:item.snippet}));
+    appendCards(document.getElementById('videoList'),items);
+  }catch(e){console.error(e);}
 }
 
 function appendCards(el,items){
@@ -495,17 +524,7 @@ function appendCards(el,items){
     const card=document.createElement('div');
     card.className='video-card';
     card.innerHTML=`<img class="video-thumb" src="${thumb}" alt=""/><div class="video-info"><div class="video-title">${escHtml(title)}</div><div class="video-meta">${date}</div></div><div class="vcheck"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
-    // 유튜브 링크 버튼 별도 추가
-    const ytBtn = document.createElement('a');
-    ytBtn.href='https://www.youtube.com/watch?v='+vid;
-    ytBtn.target='_blank';
-    ytBtn.title='유튜브에서 보기';
-    ytBtn.style.cssText='flex-shrink:0;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--t2);transition:background .15s;';
-    ytBtn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>';
-    ytBtn.addEventListener('click', e=>e.stopPropagation());
-    ytBtn.addEventListener('mouseover',()=>{ytBtn.style.background='var(--hover)';ytBtn.style.color='var(--text)';});
-    ytBtn.addEventListener('mouseout',()=>{ytBtn.style.background='var(--surface2)';ytBtn.style.color='var(--t2)';});
-    card.insertBefore(ytBtn, card.querySelector('.vcheck'));
+
     card.onclick=()=>{
       document.querySelectorAll('.video-card').forEach(c=>c.classList.remove('selected'));
       card.classList.add('selected'); selectedVid=vid;

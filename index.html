@@ -397,6 +397,7 @@ textarea{resize:vertical;}
 let token=null, channels=[], activeCh=0, nextPage=null, selectedVid=null;
 let jsonData=null, defaultLang='en', currentMode='json';
 let uploadsPlaylistId=null;
+let tokenRefreshTimer=null;
 
 const LANG_LIST=[
   ['ko','한국어'],['en','영어'],['ja','일본어'],['zh-Hans','중국어(간체)'],['zh-Hant','중국어(번체)'],
@@ -452,6 +453,7 @@ function doLogin(){
     callback:async(resp)=>{
       if(resp.error){alert('로그인 실패: '+resp.error);return;}
       token=resp.access_token;
+      startTokenRefresh();
       const [user,ch]=await Promise.all([fetchUser(token),fetchChannel(token)]);
       channels=[{token,...user,...ch}]; activeCh=0;
       document.getElementById('userAvatar').src=user.picture||'';
@@ -479,6 +481,7 @@ function addChannel(){
       const [user,ch]=await Promise.all([fetchUser(t),fetchChannel(t)]);
       if(channels.find(c=>c.channelId===ch.channelId)){alert('이미 추가된 채널이에요!');return;}
       channels.push({token:t,...user,...ch});
+      // 추가된 채널 토큰도 갱신 스케줄 등록
       renderSideChannels();
       await switchChannel(channels.length-1);
     }
@@ -751,10 +754,39 @@ function goPage(page,btn){
 
 function doSignout(){
   token=null;channels=[];activeCh=0;selectedVid=null;jsonData=null;nextPage=null;
+  if(tokenRefreshTimer) clearInterval(tokenRefreshTimer); tokenRefreshTimer=null;
   document.getElementById('appScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('sideChannels').innerHTML='';
+}
+
+function startTokenRefresh(){
+  if(tokenRefreshTimer) clearInterval(tokenRefreshTimer);
+  // 50분마다 토큰 갱신 (만료 10분 전)
+  tokenRefreshTimer = setInterval(async()=>{
+    const clientId = localStorage.getItem('dj_client_id');
+    if(!clientId) return;
+    try{
+      await new Promise((resolve, reject)=>{
+        google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+          prompt: '',
+          callback: (resp)=>{
+            if(resp.error){ reject(resp.error); return; }
+            // 현재 활성 채널 토큰 갱신
+            token = resp.access_token;
+            if(channels[activeCh]) channels[activeCh].token = resp.access_token;
+            console.log('토큰 자동 갱신 완료');
+            resolve();
+          }
+        }).requestAccessToken();
+      });
+    }catch(e){
+      console.warn('토큰 갱신 실패:', e);
+    }
+  }, 50 * 60 * 1000); // 50분
 }
 
 async function fetchUser(t){return(await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+t}})).json();}

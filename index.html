@@ -912,8 +912,8 @@ async function runAnalysis(){
     setP(10,'채널 정보 불러오는 중...');
     log('▶ 채널 정보 로딩...');
 
-    // 1. 채널 기본 정보
-    const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,brandingSettings,status&mine=true',{headers:{Authorization:'Bearer '+token}});
+    // 1. 채널 기본 정보 (contentDetails 포함)
+    const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails,brandingSettings,status&mine=true',{headers:{Authorization:'Bearer '+token}});
     const chData=await chRes.json();
     const ch=chData.items?.[0];
     if(!ch){log('✗ 채널 정보를 불러올 수 없어요.','err');btn.disabled=false;return;}
@@ -922,10 +922,11 @@ async function runAnalysis(){
     setP(25,'최근 영상 목록 불러오는 중...');
     log('▶ 최근 영상 불러오는 중...');
 
-    // 2. 최근 영상 20개
-    const plId=ch.contentDetails?.relatedPlaylists?.uploads || await getUploadsPlaylist();
+    // 2. 최근 영상 20개 — uploadsPlaylist ID 직접 추출
+    const plId = ch.contentDetails?.relatedPlaylists?.uploads || uploadsPlaylistId;
+    if(!plId){log('✗ 업로드 재생목록을 찾을 수 없어요.','err');btn.disabled=false;return;}
     let videoIds=[];
-    const vidRes=await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsPlaylistId+'&maxResults=20',{headers:{Authorization:'Bearer '+token}});
+    const vidRes=await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+plId+'&maxResults=20',{headers:{Authorization:'Bearer '+token}});
     const vidData=await vidRes.json();
     videoIds=(vidData.items||[]).map(i=>i.snippet.resourceId.videoId).filter(Boolean);
     if(!videoIds.length){log('✗ 영상을 찾을 수 없어요.','err');btn.disabled=false;return;}

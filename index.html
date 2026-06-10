@@ -936,7 +936,7 @@ async function runAnalysis(){
     log('▶ 번역/설정 상태 점검 중...');
 
     // 3. 영상 상세 (localizations, snippet, status)
-    const detRes=await fetch('https://www.googleapis.com/youtube/v3/videos?part=snippet,localizations,status,contentDetails&id='+videoIds.join(','),{headers:{Authorization:'Bearer '+token}});
+    const detRes=await fetch('https://www.googleapis.com/youtube/v3/videos?part=snippet,localizations,status,contentDetails,statistics&id='+videoIds.join(','),{headers:{Authorization:'Bearer '+token}});
     const detData=await detRes.json();
     const videos=detData.items||[];
     log('✓ 상세 정보 로딩 완료','ok');
@@ -951,52 +951,136 @@ async function runAnalysis(){
       const locCount=Object.keys(locs).length;
       const snippet=v.snippet||{};
       const status=v.status||{};
+      const contentDetails=v.contentDetails||{};
+      const stats=v.statistics||{};
+      const tags=snippet.tags||[];
+      const desc=snippet.description||'';
+      const title=snippet.title||'';
 
-      // 번역 체크
+      // ── 번역 관련 ──────────────────────────────
       if(locCount===0){
-        issues.push({type:'err',label:'번역 없음',detail:'번역된 언어가 하나도 없어요. 해당 영상에 다국어 번역을 추가하세요.'});
+        issues.push({type:'err',label:'번역 없음',detail:'번역된 언어가 하나도 없어요. 번역 업로드 탭에서 다국어 번역을 추가하세요.'});
       } else if(locCount<5){
-        issues.push({type:'warn',label:'번역 부족 ('+locCount+'개)',detail:'번역 언어가 '+locCount+'개뿐이에요. 주요 언어(영어·일본어·스페인어 등)를 추가하면 노출이 늘어요.'});
+        issues.push({type:'warn',label:'번역 부족 ('+locCount+'개)',detail:'주요 언어(영어·일본어·스페인어·중국어 등)를 추가하면 해외 노출이 크게 늘어요.'});
+      } else if(locCount<10){
+        info.push({type:'warn',label:'번역 '+locCount+'개 (보통)',detail:'번역이 있지만 10개 이상이면 더 좋아요.'});
       } else {
-        info.push({type:'ok',label:'번역 '+locCount+'개',detail:'다국어 번역이 잘 설정되어 있어요.'});
+        info.push({type:'ok',label:'번역 '+locCount+'개 ✓',detail:'다국어 번역이 잘 설정되어 있어요.'});
       }
 
-      // 기본 언어 설정 체크
+      // 번역 내용 품질: 설명 없이 제목만 있는 언어 체크
+      const locWithEmptyDesc=Object.entries(locs).filter(([,val])=>val.title&&!val.description).length;
+      if(locWithEmptyDesc>0){
+        issues.push({type:'warn',label:'번역 설명 누락 ('+locWithEmptyDesc+'개 언어)',detail:locWithEmptyDesc+'개 언어에 제목만 번역되고 설명이 비어있어요. 설명도 번역하면 SEO에 유리해요.'});
+      }
+
+      // ── 기본 설정 ──────────────────────────────
       if(!snippet.defaultLanguage){
-        issues.push({type:'err',label:'기본 언어 미설정',detail:'defaultLanguage가 설정되지 않았어요. YouTube Studio에서 영상 세부정보 → 더보기 → 영상 언어를 설정하세요.'});
+        issues.push({type:'err',label:'기본 언어 미설정',detail:'YouTube Studio → 영상 세부정보 → 더보기 → 영상 언어를 설정하세요. 번역 기능이 제대로 작동하지 않아요.'});
       } else {
-        info.push({type:'ok',label:'기본 언어: '+snippet.defaultLanguage,detail:'기본 언어가 올바르게 설정되어 있어요.'});
+        info.push({type:'ok',label:'기본 언어: '+snippet.defaultLanguage+' ✓',detail:'기본 언어가 올바르게 설정되어 있어요.'});
       }
 
-      // 제목 길이 체크
-      if(snippet.title && snippet.title.length>70){
-        issues.push({type:'warn',label:'제목 너무 김 ('+snippet.title.length+'자)',detail:'제목이 70자를 넘으면 검색 결과에서 잘릴 수 있어요. 핵심 키워드를 앞으로 배치하세요.'});
-      }
-
-      // 설명 체크
-      if(!snippet.description || snippet.description.trim().length<50){
-        issues.push({type:'warn',label:'설명 너무 짧음',detail:'영상 설명이 너무 짧아요. 최소 150자 이상 작성하면 SEO에 유리해요.'});
-      }
-
-      // 카테고리 체크
       if(!snippet.categoryId){
-        issues.push({type:'warn',label:'카테고리 미설정',detail:'카테고리를 설정하면 관련 영상 추천 알고리즘에 유리해요.'});
+        issues.push({type:'warn',label:'카테고리 미설정',detail:'카테고리를 설정하면 관련 영상 추천 알고리즘에 유리해요. YouTube Studio → 세부정보 → 카테고리.'});
+      } else {
+        info.push({type:'ok',label:'카테고리 설정됨 ✓',detail:'카테고리가 설정되어 있어요.'});
       }
 
-      // 공개 상태
+      // ── 제목 ──────────────────────────────────
+      if(title.length===0){
+        issues.push({type:'err',label:'제목 없음',detail:'제목이 없어요!'});
+      } else if(title.length>70){
+        issues.push({type:'warn',label:'제목 너무 김 ('+title.length+'자)',detail:'70자 초과 시 검색 결과·모바일에서 잘려요. 핵심 키워드를 앞에 배치하고 줄여보세요.'});
+      } else if(title.length<20){
+        issues.push({type:'warn',label:'제목 너무 짧음 ('+title.length+'자)',detail:'제목이 너무 짧으면 검색 키워드가 부족해요. 20자 이상 구체적으로 작성하세요.'});
+      } else {
+        info.push({type:'ok',label:'제목 길이 적절 ('+title.length+'자) ✓',detail:'제목 길이가 적당해요.'});
+      }
+
+      // ── 설명 ──────────────────────────────────
+      const descLen=desc.trim().length;
+      if(descLen===0){
+        issues.push({type:'err',label:'설명 없음',detail:'설명이 전혀 없어요. 설명은 SEO에 매우 중요해요. 최소 300자 이상 작성하세요.'});
+      } else if(descLen<150){
+        issues.push({type:'warn',label:'설명 너무 짧음 ('+descLen+'자)',detail:'설명이 너무 짧아요. 300자 이상 키워드 포함해서 작성하면 검색 노출이 올라가요.'});
+      } else if(descLen<300){
+        issues.push({type:'warn',label:'설명 보통 ('+descLen+'자)',detail:'설명이 있지만 300자 이상이면 더 좋아요. 관련 키워드와 링크를 추가해보세요.'});
+      } else {
+        info.push({type:'ok',label:'설명 충실 ('+descLen+'자) ✓',detail:'설명이 잘 작성되어 있어요.'});
+      }
+
+      // 설명에 챕터(타임스탬프) 있는지 체크
+      const hasChapter=/\d+:\d+/.test(desc);
+      if(!hasChapter){
+        issues.push({type:'warn',label:'챕터(타임스탬프) 없음',detail:'설명에 0:00 형식의 챕터를 추가하면 시청자 이탈률을 낮추고 검색 노출(리치 스니펫)이 높아져요.'});
+      } else {
+        info.push({type:'ok',label:'챕터 있음 ✓',detail:'설명에 챕터가 설정되어 있어요.'});
+      }
+
+      // 설명에 링크(SNS/사이트) 있는지
+      const hasLink=/https?:\/\//.test(desc);
+      if(!hasLink){
+        issues.push({type:'warn',label:'설명에 링크 없음',detail:'SNS·웹사이트·관련 영상 링크를 설명에 추가하면 채널 전체 체류 시간이 늘어요.'});
+      } else {
+        info.push({type:'ok',label:'설명에 링크 있음 ✓',detail:'설명에 링크가 포함되어 있어요.'});
+      }
+
+      // ── 태그 ──────────────────────────────────
+      if(tags.length===0){
+        issues.push({type:'warn',label:'태그 없음',detail:'태그를 추가하면 관련 검색어로 발견될 확률이 높아져요. 주요 키워드 5~15개를 추가하세요.'});
+      } else if(tags.length<5){
+        issues.push({type:'warn',label:'태그 부족 ('+tags.length+'개)',detail:'태그가 너무 적어요. 관련 키워드 5~15개를 추가하세요.'});
+      } else {
+        info.push({type:'ok',label:'태그 '+tags.length+'개 ✓',detail:'태그가 설정되어 있어요.'});
+      }
+
+      // ── 썸네일 ────────────────────────────────
+      const hasCustomThumb=snippet.thumbnails?.maxres||snippet.thumbnails?.standard;
+      if(!hasCustomThumb){
+        issues.push({type:'warn',label:'커스텀 썸네일 없음',detail:'자동 생성 썸네일보다 직접 제작한 썸네일이 CTR을 2~3배 높여요. 1280×720px 이미지를 업로드하세요.'});
+      } else {
+        info.push({type:'ok',label:'커스텀 썸네일 ✓',detail:'커스텀 썸네일이 설정되어 있어요.'});
+      }
+
+      // ── 자막(CC) ──────────────────────────────
+      if(contentDetails.caption==='false'||contentDetails.caption===false){
+        issues.push({type:'warn',label:'자막(CC) 없음',detail:'자막이 없으면 청각장애인 접근성이 낮고, 자막 텍스트가 SEO에 활용되지 않아요. 자동 자막이라도 활성화하세요.'});
+      } else if(contentDetails.caption==='true'||contentDetails.caption===true){
+        info.push({type:'ok',label:'자막(CC) 있음 ✓',detail:'자막이 설정되어 있어요.'});
+      }
+
+      // ── 공개 상태 ─────────────────────────────
       if(status.privacyStatus==='private'){
-        info.push({type:'warn',label:'비공개',detail:'비공개 영상이에요.'});
+        info.push({type:'warn',label:'비공개 영상',detail:'비공개 상태예요. 의도적인 경우라면 괜찮아요.'});
       } else if(status.privacyStatus==='unlisted'){
-        info.push({type:'warn',label:'일부 공개',detail:'링크 공유만 가능한 상태예요.'});
+        info.push({type:'warn',label:'일부 공개 영상',detail:'링크 공유만 가능한 상태예요.'});
+      } else {
+        info.push({type:'ok',label:'공개 ✓',detail:'정상적으로 공개된 영상이에요.'});
       }
 
-      // 자막 여부 (caption)
+      // ── 퍼가기 ────────────────────────────────
       if(status.embeddable===false){
-        issues.push({type:'warn',label:'퍼가기 비허용',detail:'퍼가기가 비허용 상태예요. 허용하면 더 많은 노출이 가능해요.'});
+        issues.push({type:'warn',label:'퍼가기 비허용',detail:'퍼가기를 허용하면 외부 사이트에 임베드되어 추가 조회수를 얻을 수 있어요.'});
+      }
+
+      // ── 댓글 ──────────────────────────────────
+      if(status.madeForKids===true){
+        issues.push({type:'warn',label:'아동용 콘텐츠 설정',detail:'아동용으로 설정되면 댓글·알림·카드 등 다수 기능이 비활성화돼요. 의도적인 경우가 아니라면 해제하세요.'});
+      }
+
+      // ── 조회수 대비 좋아요 비율 ───────────────
+      const views=parseInt(stats.viewCount)||0;
+      const likes=parseInt(stats.likeCount)||0;
+      if(views>1000 && likes/views<0.01){
+        issues.push({type:'warn',label:'좋아요 비율 낮음 ('+(likes/views*100).toFixed(2)+'%)',detail:'조회수 대비 좋아요 비율이 1% 미만이에요. 영상 끝에 좋아요 요청 CTA를 추가해보세요.'});
+      } else if(views>100){
+        info.push({type:'ok',label:'좋아요 비율 '+(views>0?(likes/views*100).toFixed(1):0)+'% ✓',detail:'좋아요 비율이 양호해요.'});
       }
 
       const allChecks=[...issues,...info];
-      const score=Math.max(0,100 - issues.filter(i=>i.type==='err').length*25 - issues.filter(i=>i.type==='warn').length*10);
+      // 점수: err -20점, warn -8점
+      const score=Math.max(0,100 - issues.filter(i=>i.type==='err').length*20 - issues.filter(i=>i.type==='warn').length*8);
 
       return{
         id:v.id,

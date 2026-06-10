@@ -166,6 +166,36 @@ textarea{resize:vertical;}
 .divider{height:1px;background:var(--border);margin:16px 0;}
 .row{display:flex;align-items:center;gap:8px;}
 .more-btn-wrap{margin-top:8px;}
+
+/* 채널 분석 */
+.stat-card{background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--border);text-align:center;}
+.stat-num{font-size:26px;font-weight:700;line-height:1.1;}
+.stat-label{font-size:11px;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:.4px;}
+.stat-ok{color:var(--green);}
+.stat-warn{color:#f90;}
+.stat-err{color:var(--red);}
+
+.video-analyze-card{background:var(--surface);border-radius:10px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden;}
+.vac-header{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;transition:background .1s;}
+.vac-header:hover{background:var(--hover);}
+.vac-thumb{width:80px;height:45px;object-fit:cover;border-radius:4px;background:var(--surface2);flex-shrink:0;}
+.vac-info{flex:1;overflow:hidden;}
+.vac-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vac-date{font-size:11px;color:var(--t3);margin-top:2px;}
+.vac-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.vac-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;}
+.vac-badge.ok{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+.vac-badge.warn{background:rgba(255,153,0,0.12);color:#f90;border:1px solid rgba(255,153,0,0.3);}
+.vac-badge.err{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);}
+.vac-arrow{color:var(--t3);font-size:18px;transition:transform .2s;}
+.vac-body{display:none;border-top:1px solid var(--border);padding:12px 14px;}
+.vac-body.open{display:block;}
+.check-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.check-row:last-child{border-bottom:none;}
+.check-icon{width:18px;height:18px;flex-shrink:0;margin-top:1px;}
+.check-text{flex:1;color:var(--t2);}
+.check-detail{font-size:11px;color:var(--t3);margin-top:2px;}
+
 </style>
 </head>
 <body>
@@ -269,6 +299,10 @@ textarea{resize:vertical;}
         <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
         번역 업로드
       </button>
+      <button class="nav-item" id="nav-analyze" onclick="goPage('analyze',this)">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+        채널 분석
+      </button>
       <div class="nav-divider"></div>
       <div class="nav-section">채널</div>
       <div id="sideChannels"></div>
@@ -292,7 +326,7 @@ textarea{resize:vertical;}
   <!-- 메인 -->
   <div class="main">
     <div class="topbar">
-      <div style="font-size:18px;font-weight:700;">번역 업로드</div>
+      <div id="topbarTitle" style="font-size:18px;font-weight:700;">번역 업로드</div>
       <div id="chBadge" class="ch-badge hidden">
         <img id="chBadgeImg" src="" alt=""/>
         <span id="chBadgeName"></span>
@@ -389,6 +423,54 @@ textarea{resize:vertical;}
       <div id="resultBox"></div>
 
     </div>
+  </div>
+
+  <!-- 채널 분석 페이지 -->
+  <div id="page-analyze" class="hidden" style="padding:24px;max-width:900px;">
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-head">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--red)" style="flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        <div class="card-title">채널 분석 — 최근 영상 상태 점검</div>
+      </div>
+      <div style="font-size:13px;color:var(--t2);margin-bottom:14px;">로그인된 채널의 최근 영상을 불러와 번역 누락, 기본 설정 오류 등을 확인합니다.</div>
+      <button class="btn btn-red" id="analyzeBtn" onclick="runAnalysis()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        최근 영상 분석하기
+      </button>
+    </div>
+
+    <!-- 분석 진행 -->
+    <div id="analyzeProgress" class="card hidden" style="margin-bottom:16px;">
+      <div class="prog-wrap">
+        <div class="prog-header">
+          <span class="prog-label" id="analyzePLabel">분석 중...</span>
+          <span class="prog-count" id="analyzePCount"></span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="analyzePFill" style="background:var(--red)"></div></div>
+      </div>
+      <div class="log-box" id="analyzeLog"></div>
+    </div>
+
+    <!-- 요약 카드 -->
+    <div id="analyzeSummary" class="hidden">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;" id="summaryCards"></div>
+    </div>
+
+    <!-- 영상별 상세 결과 -->
+    <div id="analyzeResults"></div>
+
+    <!-- AI 종합 분석 -->
+    <div id="aiAnalysisBox" class="hidden">
+      <div class="card" style="border-color:var(--red-border);">
+        <div class="card-head">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--red)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          <div class="card-title">AI 종합 분석 및 액션 플랜</div>
+        </div>
+        <div id="aiAnalysisContent" style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -750,6 +832,19 @@ async function putLoc(vid,snippet,loc,lang){
 function goPage(page,btn){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   btn.classList.add('active');
+
+  const uploadPage = document.querySelector('.content');
+  const analyzePage = document.getElementById('page-analyze');
+
+  if(page==='upload'){
+    uploadPage.style.display='';
+    analyzePage.classList.add('hidden');
+    document.getElementById('topbarTitle').textContent='번역 업로드';
+  } else if(page==='analyze'){
+    uploadPage.style.display='none';
+    analyzePage.classList.remove('hidden');
+    document.getElementById('topbarTitle').textContent='채널 분석';
+  }
 }
 
 function doSignout(){
@@ -795,7 +890,221 @@ async function fetchChannel(t){
   const d=await r.json(); const ch=d.items?.[0];
   return{channelId:ch?.id||'',channelName:ch?.snippet?.title||'',channelThumb:ch?.snippet?.thumbnails?.default?.url||''};
 }
+// ─── 채널 분석 ────────────────────────────────────────────
+async function runAnalysis(){
+  if(!token){alert('먼저 로그인해주세요.');return;}
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=true;
+  const prog=document.getElementById('analyzeProgress');
+  const pFill=document.getElementById('analyzePFill');
+  const pLabel=document.getElementById('analyzePLabel');
+  const pCount=document.getElementById('analyzePCount');
+  const logBox=document.getElementById('analyzeLog');
+  prog.classList.remove('hidden');
+  document.getElementById('analyzeSummary').classList.add('hidden');
+  document.getElementById('analyzeResults').innerHTML='';
+  document.getElementById('aiAnalysisBox').classList.add('hidden');
+  logBox.innerHTML='';
+
+  const setP=(p,l,c='')=>{pFill.style.width=p+'%';pLabel.textContent=l;if(c)pCount.textContent=c;};
+  const log=(msg,t='info')=>{const d=document.createElement('div');d.className=t==='ok'?'log-ok':t==='err'?'log-err':'log-info';d.textContent=msg;logBox.appendChild(d);logBox.scrollTop=logBox.scrollHeight;};
+
+  try{
+    setP(10,'채널 정보 불러오는 중...');
+    log('▶ 채널 정보 로딩...');
+
+    // 1. 채널 기본 정보
+    const chRes=await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,brandingSettings,status&mine=true',{headers:{Authorization:'Bearer '+token}});
+    const chData=await chRes.json();
+    const ch=chData.items?.[0];
+    if(!ch){log('✗ 채널 정보를 불러올 수 없어요.','err');btn.disabled=false;return;}
+    log('✓ 채널: '+ch.snippet.title,'ok');
+
+    setP(25,'최근 영상 목록 불러오는 중...');
+    log('▶ 최근 영상 불러오는 중...');
+
+    // 2. 최근 영상 20개
+    const plId=ch.contentDetails?.relatedPlaylists?.uploads || await getUploadsPlaylist();
+    let videoIds=[];
+    const vidRes=await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId='+uploadsPlaylistId+'&maxResults=20',{headers:{Authorization:'Bearer '+token}});
+    const vidData=await vidRes.json();
+    videoIds=(vidData.items||[]).map(i=>i.snippet.resourceId.videoId).filter(Boolean);
+    if(!videoIds.length){log('✗ 영상을 찾을 수 없어요.','err');btn.disabled=false;return;}
+    log('✓ 영상 '+videoIds.length+'개 발견','ok');
+
+    setP(45,'영상 상세 정보 분석 중...');
+    log('▶ 번역/설정 상태 점검 중...');
+
+    // 3. 영상 상세 (localizations, snippet, status)
+    const detRes=await fetch('https://www.googleapis.com/youtube/v3/videos?part=snippet,localizations,status,contentDetails&id='+videoIds.join(','),{headers:{Authorization:'Bearer '+token}});
+    const detData=await detRes.json();
+    const videos=detData.items||[];
+    log('✓ 상세 정보 로딩 완료','ok');
+
+    setP(65,'분석 결과 정리 중...');
+
+    // 4. 각 영상 점검
+    const results=videos.map(v=>{
+      const issues=[];
+      const info=[];
+      const locs=v.localizations||{};
+      const locCount=Object.keys(locs).length;
+      const snippet=v.snippet||{};
+      const status=v.status||{};
+
+      // 번역 체크
+      if(locCount===0){
+        issues.push({type:'err',label:'번역 없음',detail:'번역된 언어가 하나도 없어요. 해당 영상에 다국어 번역을 추가하세요.'});
+      } else if(locCount<5){
+        issues.push({type:'warn',label:'번역 부족 ('+locCount+'개)',detail:'번역 언어가 '+locCount+'개뿐이에요. 주요 언어(영어·일본어·스페인어 등)를 추가하면 노출이 늘어요.'});
+      } else {
+        info.push({type:'ok',label:'번역 '+locCount+'개',detail:'다국어 번역이 잘 설정되어 있어요.'});
+      }
+
+      // 기본 언어 설정 체크
+      if(!snippet.defaultLanguage){
+        issues.push({type:'err',label:'기본 언어 미설정',detail:'defaultLanguage가 설정되지 않았어요. YouTube Studio에서 영상 세부정보 → 더보기 → 영상 언어를 설정하세요.'});
+      } else {
+        info.push({type:'ok',label:'기본 언어: '+snippet.defaultLanguage,detail:'기본 언어가 올바르게 설정되어 있어요.'});
+      }
+
+      // 제목 길이 체크
+      if(snippet.title && snippet.title.length>70){
+        issues.push({type:'warn',label:'제목 너무 김 ('+snippet.title.length+'자)',detail:'제목이 70자를 넘으면 검색 결과에서 잘릴 수 있어요. 핵심 키워드를 앞으로 배치하세요.'});
+      }
+
+      // 설명 체크
+      if(!snippet.description || snippet.description.trim().length<50){
+        issues.push({type:'warn',label:'설명 너무 짧음',detail:'영상 설명이 너무 짧아요. 최소 150자 이상 작성하면 SEO에 유리해요.'});
+      }
+
+      // 카테고리 체크
+      if(!snippet.categoryId){
+        issues.push({type:'warn',label:'카테고리 미설정',detail:'카테고리를 설정하면 관련 영상 추천 알고리즘에 유리해요.'});
+      }
+
+      // 공개 상태
+      if(status.privacyStatus==='private'){
+        info.push({type:'warn',label:'비공개',detail:'비공개 영상이에요.'});
+      } else if(status.privacyStatus==='unlisted'){
+        info.push({type:'warn',label:'일부 공개',detail:'링크 공유만 가능한 상태예요.'});
+      }
+
+      // 자막 여부 (caption)
+      if(status.embeddable===false){
+        issues.push({type:'warn',label:'퍼가기 비허용',detail:'퍼가기가 비허용 상태예요. 허용하면 더 많은 노출이 가능해요.'});
+      }
+
+      const allChecks=[...issues,...info];
+      const score=Math.max(0,100 - issues.filter(i=>i.type==='err').length*25 - issues.filter(i=>i.type==='warn').length*10);
+
+      return{
+        id:v.id,
+        title:snippet.title||'(제목 없음)',
+        thumb:snippet.thumbnails?.medium?.url||'',
+        publishedAt:snippet.publishedAt||'',
+        issues,info,allChecks,score,locCount,
+        defaultLang:snippet.defaultLanguage||null,
+        privacyStatus:status.privacyStatus||'public'
+      };
+    });
+
+    // 5. 요약 통계
+    const totalIssues=results.reduce((s,r)=>s+r.issues.filter(i=>i.type==='err').length,0);
+    const totalWarns=results.reduce((s,r)=>s+r.issues.filter(i=>i.type==='warn').length,0);
+    const noTranslation=results.filter(r=>r.locCount===0).length;
+    const noDefaultLang=results.filter(r=>!r.defaultLang).length;
+    const avgScore=Math.round(results.reduce((s,r)=>s+r.score,0)/results.length);
+
+    document.getElementById('summaryCards').innerHTML=`
+      <div class="stat-card"><div class="stat-num ${avgScore>=80?'stat-ok':avgScore>=50?'stat-warn':'stat-err'}">${avgScore}</div><div class="stat-label">평균 점수</div></div>
+      <div class="stat-card"><div class="stat-num stat-err">${totalIssues}</div><div class="stat-label">심각한 문제</div></div>
+      <div class="stat-card"><div class="stat-num stat-warn">${totalWarns}</div><div class="stat-label">개선 필요</div></div>
+      <div class="stat-card"><div class="stat-num ${noTranslation===0?'stat-ok':'stat-err'}">${noTranslation}</div><div class="stat-label">번역 없는 영상</div></div>
+      <div class="stat-card"><div class="stat-num ${noDefaultLang===0?'stat-ok':'stat-err'}">${noDefaultLang}</div><div class="stat-label">기본언어 미설정</div></div>
+    `;
+    document.getElementById('analyzeSummary').classList.remove('hidden');
+
+    // 6. 영상별 카드 렌더
+    const container=document.getElementById('analyzeResults');
+    container.innerHTML='';
+    results.forEach((r,idx)=>{
+      const scoreColor=r.score>=80?'stat-ok':r.score>=50?'stat-warn':'stat-err';
+      const badgesHtml=r.issues.slice(0,3).map(i=>`<span class="vac-badge ${i.type}">${i.label}</span>`).join('')+(r.issues.length===0?'<span class="vac-badge ok">✓ 문제없음</span>':'');
+      const dateStr=r.publishedAt?new Date(r.publishedAt).toLocaleDateString('ko-KR'):'';
+      const checksHtml=r.allChecks.map(c=>`
+        <div class="check-row">
+          <svg class="check-icon" viewBox="0 0 24 24" fill="${c.type==='ok'?'var(--green)':c.type==='warn'?'#f90':'var(--red)'}">
+            ${c.type==='ok'?'<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>':c.type==='warn'?'<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>':'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'}
+          </svg>
+          <div class="check-text">${escHtml(c.label)}<div class="check-detail">${escHtml(c.detail)}</div></div>
+        </div>`).join('');
+      const card=document.createElement('div');
+      card.className='video-analyze-card';
+      card.innerHTML=`
+        <div class="vac-header" onclick="toggleVac(this)">
+          <img class="vac-thumb" src="${escHtml(r.thumb)}" alt=""/>
+          <div class="vac-info">
+            <div class="vac-title">${escHtml(r.title)}</div>
+            <div class="vac-date">${dateStr}</div>
+            <div class="vac-badges">${badgesHtml}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div class="stat-num ${scoreColor}" style="font-size:20px;">${r.score}</div>
+            <div style="font-size:10px;color:var(--t3);">점수</div>
+          </div>
+          <span class="vac-arrow">›</span>
+        </div>
+        <div class="vac-body">${checksHtml||'<div style="color:var(--t3);font-size:13px;">점검 항목이 없어요.</div>'}</div>`;
+      container.appendChild(card);
+    });
+
+    setP(80,'AI 종합 분석 중...');
+    log('▶ AI 종합 분석 요청 중...');
+
+    // 7. AI 분석
+    const claudeKey=localStorage.getItem('dj_claude_key')||'';
+    if(!claudeKey){
+      log('⚠ Claude API Key가 없어 AI 분석을 건너뜁니다. 번역 업로드 탭에서 API Key를 입력해주세요.','warn');
+      setP(100,'분석 완료');
+      btn.disabled=false;
+      return;
+    }
+
+    const summary=results.map((r,i)=>`[영상${i+1}] "${r.title}" | 점수:${r.score} | 번역:${r.locCount}개 | 기본언어:${r.defaultLang||'미설정'} | 문제:${r.issues.map(x=>x.label).join(', ')||'없음'}`).join('\n');
+    const aiPrompt=`당신은 유튜브 채널 성장 전문가입니다. 아래는 채널의 최근 영상 ${results.length}개에 대한 점검 결과입니다.\n\n${summary}\n\n위 데이터를 바탕으로:\n1. 가장 시급히 해결해야 할 문제 TOP 3 (구체적인 이유 포함)\n2. 번역 전략 개선 방향 (어떤 언어를 먼저 추가해야 하는지)\n3. 기본 설정 체크리스트 (defaultLanguage, 설명, 카테고리 등)\n4. 채널 노출 및 CTR 향상을 위한 실행 가능한 액션 플랜 3가지\n\n각 항목을 명확하게, 한국어로 실용적으로 작성해주세요. 이모지를 적절히 사용해 가독성을 높여주세요.`;
+
+    const aiRes=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:aiPrompt}]})
+    });
+    const aiData=await aiRes.json();
+    if(!aiRes.ok){log('✗ AI 분석 실패: '+(aiData.error?.message||aiRes.status),'err');}
+    else{
+      const aiText=aiData.content?.map(c=>c.text||'').join('')||'';
+      document.getElementById('aiAnalysisContent').textContent=aiText;
+      document.getElementById('aiAnalysisBox').classList.remove('hidden');
+      log('✓ AI 분석 완료','ok');
+    }
+
+    setP(100,'분석 완료!');
+    log('✓ 전체 분석 완료','ok');
+  }catch(e){
+    log('✗ 오류: '+e.message,'err');
+    console.error(e);
+  }
+  btn.disabled=false;
+}
+
+function toggleVac(header){
+  const body=header.nextElementSibling;
+  const arrow=header.querySelector('.vac-arrow');
+  const isOpen=body.classList.toggle('open');
+  arrow.style.transform=isOpen?'rotate(90deg)':'';
+}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 </script>
 </body>
 </html>

@@ -423,10 +423,9 @@ textarea{resize:vertical;}
       <div id="resultBox"></div>
 
     </div>
-  </div>
 
-  <!-- 채널 분석 페이지 -->
-  <div id="page-analyze" class="hidden" style="padding:24px;max-width:900px;">
+    <!-- 채널 분석 페이지 -->
+    <div id="page-analyze" class="hidden" style="padding:24px;max-width:900px;overflow-y:auto;height:calc(100vh - 56px);">
 
     <div class="card" style="margin-bottom:16px;">
       <div class="card-head">
@@ -471,8 +470,8 @@ textarea{resize:vertical;}
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /main -->
+</div><!-- /appScreen -->
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
@@ -837,7 +836,7 @@ function goPage(page,btn){
   const analyzePage = document.getElementById('page-analyze');
 
   if(page==='upload'){
-    uploadPage.style.display='';
+    uploadPage.style.display='block';
     analyzePage.classList.add('hidden');
     document.getElementById('topbarTitle').textContent='번역 업로드';
   } else if(page==='analyze'){

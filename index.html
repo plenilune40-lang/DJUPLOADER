@@ -303,6 +303,10 @@ textarea{resize:vertical;}
         <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
         채널 분석
       </button>
+      <button class="nav-item" id="nav-analytics" onclick="goPage('analytics',this)">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        Analytics
+      </button>
       <div class="nav-divider"></div>
       <div class="nav-section">채널</div>
       <div id="sideChannels"></div>
@@ -471,9 +475,143 @@ textarea{resize:vertical;}
     </div>
 
   </div><!-- /main -->
+
+  <!-- Analytics 페이지 -->
+  <div id="page-analytics" class="hidden" style="padding:24px;max-width:960px;overflow-y:auto;height:calc(100vh - 56px);">
+
+    <!-- 설정 카드 -->
+    <div class="card" id="analyticsSetupCard" style="margin-bottom:16px;">
+      <div class="card-head">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--red)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        <div class="card-title">Analytics — 노출·CTR·시청시간 분석</div>
+      </div>
+
+      <!-- 미설정 상태: 가이드 -->
+      <div id="analyticsGuide">
+        <div style="font-size:13px;color:var(--t2);margin-bottom:16px;">Apps Script 웹앱 URL을 한 번만 설정하면 버튼 하나로 Analytics 데이터를 바로 불러와요.</div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+            <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;">1</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px;">Google 스프레드시트 새로 만들기</div>
+              <div style="font-size:12px;color:var(--t3);"><a href="https://sheets.new" target="_blank" style="color:var(--red);text-decoration:none;">sheets.new</a> 접속 → 새 시트 생성</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+            <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;">2</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px;">확장 프로그램 → Apps Script 열기</div>
+              <div style="font-size:12px;color:var(--t3);">상단 메뉴 → 확장 프로그램 → Apps Script 클릭</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+            <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;">3</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px;">스크립트 코드 붙여넣기</div>
+              <div style="font-size:12px;color:var(--t3);">기존 코드 전체 삭제 후 아래 다운로드한 코드 붙여넣기. SHEET_ID와 CHANNEL_ID 수정 필수!</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+            <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;">4</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px;">서비스 추가: YouTube Analytics API</div>
+              <div style="font-size:12px;color:var(--t3);">왼쪽 서비스(+) 클릭 → YouTube Analytics API 추가 → YouTube Data API v3도 추가</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+            <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;">5</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px;">웹앱으로 배포</div>
+              <div style="font-size:12px;color:var(--t3);">배포 → 새 배포 → 유형: 웹앱 → 액세스: 본인만 → 배포 → 웹앱 URL 복사</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface2);border-radius:8px;padding:10px 12px;">
+            <div style="min-width:22px;height:22px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;">6</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;margin-bottom:2px;">아래에 웹앱 URL 붙여넣기</div>
+              <div style="font-size:12px;color:var(--t3);">복사한 URL을 아래 입력창에 붙여넣고 저장!</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <div class="field-label">Apps Script 웹앱 URL</div>
+          <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/..." style="margin-bottom:6px;"/>
+          <p class="hint">배포 후 받은 웹앱 URL을 붙여넣으세요</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-red" onclick="saveAppsScriptUrl()">URL 저장하고 연결</button>
+          <a href="#" onclick="downloadScript()" class="btn btn-outline">스크립트 코드 다운로드</a>
+        </div>
+      </div>
+
+      <!-- 설정 완료 상태 -->
+      <div id="analyticsConnected" class="hidden">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;padding:10px 14px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--green)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <span style="font-size:13px;color:var(--green);font-weight:500;">Apps Script 연결됨</span>
+          <button onclick="resetAppsScriptUrl()" style="margin-left:auto;font-size:12px;color:var(--t3);background:none;border:none;cursor:pointer;">URL 변경</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <div class="field-label" style="margin:0;">분석 기간:</div>
+          <select id="analyticsDays" style="background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;color:var(--text);">
+            <option value="7">최근 7일</option>
+            <option value="28" selected>최근 28일</option>
+            <option value="90">최근 90일</option>
+            <option value="365">최근 1년</option>
+          </select>
+          <button class="btn btn-red btn-sm" onclick="loadAnalytics()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            데이터 불러오기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 로딩 -->
+    <div id="analyticsLoading" class="card hidden" style="margin-bottom:16px;">
+      <div class="prog-wrap">
+        <div class="prog-header"><span class="prog-label" id="analyticsLoadLabel">불러오는 중...</span></div>
+        <div class="prog-track"><div class="prog-fill" id="analyticsLoadFill" style="background:var(--red)"></div></div>
+      </div>
+    </div>
+
+    <!-- 요약 지표 -->
+    <div id="analyticsSummaryCards" class="hidden" style="margin-bottom:16px;"></div>
+
+    <!-- 차트 영역 -->
+    <div id="analyticsCharts" class="hidden">
+      <!-- 일별 추이 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><div class="card-title">📈 일별 노출·CTR·조회수 추이</div></div>
+        <canvas id="chartTrend" height="120"></canvas>
+      </div>
+      <!-- 영상별 성과 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><div class="card-title">🎬 영상별 성과 TOP 10</div></div>
+        <div id="videoTable" style="overflow-x:auto;"></div>
+      </div>
+      <!-- 트래픽 소스 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><div class="card-title">🔍 트래픽 소스</div></div>
+        <canvas id="chartTraffic" height="160"></canvas>
+      </div>
+      <!-- AI 분석 -->
+      <div class="card" style="border-color:var(--red-border);margin-bottom:16px;">
+        <div class="card-head">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--red)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          <div class="card-title">AI 분석 — 노출·CTR 개선 액션 플랜</div>
+        </div>
+        <div id="analyticsAiContent" style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;"></div>
+      </div>
+    </div>
+
+  </div>
 </div><!-- /appScreen -->
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 let token=null, channels=[], activeCh=0, nextPage=null, selectedVid=null;
 let jsonData=null, defaultLang='en', currentMode='json';
@@ -834,15 +972,22 @@ function goPage(page,btn){
 
   const uploadPage = document.querySelector('.content');
   const analyzePage = document.getElementById('page-analyze');
+  const analyticsPage = document.getElementById('page-analytics');
+
+  uploadPage.style.display='none';
+  analyzePage.classList.add('hidden');
+  analyticsPage.classList.add('hidden');
 
   if(page==='upload'){
     uploadPage.style.display='block';
-    analyzePage.classList.add('hidden');
     document.getElementById('topbarTitle').textContent='번역 업로드';
   } else if(page==='analyze'){
-    uploadPage.style.display='none';
     analyzePage.classList.remove('hidden');
     document.getElementById('topbarTitle').textContent='채널 분석';
+  } else if(page==='analytics'){
+    analyticsPage.classList.remove('hidden');
+    document.getElementById('topbarTitle').textContent='Analytics';
+    initAnalyticsPage();
   }
 }
 
@@ -889,7 +1034,228 @@ async function fetchChannel(t){
   const d=await r.json(); const ch=d.items?.[0];
   return{channelId:ch?.id||'',channelName:ch?.snippet?.title||'',channelThumb:ch?.snippet?.thumbnails?.default?.url||''};
 }
-// ─── 채널 분석 ────────────────────────────────────────────
+// ─── Analytics ────────────────────────────────────────────────
+let analyticsChart=null, trafficChart=null;
+
+function initAnalyticsPage(){
+  const url=localStorage.getItem('dj_apps_script_url')||'';
+  if(url){
+    document.getElementById('analyticsGuide').classList.add('hidden');
+    document.getElementById('analyticsConnected').classList.remove('hidden');
+    document.getElementById('appsScriptUrl').value=url;
+  } else {
+    document.getElementById('analyticsGuide').classList.remove('hidden');
+    document.getElementById('analyticsConnected').classList.add('hidden');
+  }
+}
+
+function saveAppsScriptUrl(){
+  const url=document.getElementById('appsScriptUrl').value.trim();
+  if(!url||!url.startsWith('https://script.google.com')){alert('올바른 Apps Script 웹앱 URL을 입력해주세요.');return;}
+  localStorage.setItem('dj_apps_script_url',url);
+  document.getElementById('analyticsGuide').classList.add('hidden');
+  document.getElementById('analyticsConnected').classList.remove('hidden');
+  alert('연결 완료! 이제 데이터 불러오기를 눌러보세요.');
+}
+
+function resetAppsScriptUrl(){
+  localStorage.removeItem('dj_apps_script_url');
+  document.getElementById('analyticsGuide').classList.remove('hidden');
+  document.getElementById('analyticsConnected').classList.add('hidden');
+  document.getElementById('analyticsSummaryCards').classList.add('hidden');
+  document.getElementById('analyticsCharts').classList.add('hidden');
+}
+
+async function loadAnalytics(){
+  const url=localStorage.getItem('dj_apps_script_url');
+  if(!url){alert('먼저 Apps Script URL을 저장해주세요.');return;}
+  const days=document.getElementById('analyticsDays').value;
+
+  const loading=document.getElementById('analyticsLoading');
+  const fill=document.getElementById('analyticsLoadFill');
+  const label=document.getElementById('analyticsLoadLabel');
+  loading.classList.remove('hidden');
+  document.getElementById('analyticsSummaryCards').classList.add('hidden');
+  document.getElementById('analyticsCharts').classList.add('hidden');
+
+  const setP=(p,l)=>{fill.style.width=p+'%';label.textContent=l;};
+
+  try{
+    setP(20,'채널 데이터 불러오는 중...');
+    const res=await fetch(url+'?action=all&days='+days);
+    if(!res.ok) throw new Error('HTTP '+res.status+' — Apps Script URL을 확인해주세요.');
+    setP(60,'데이터 분석 중...');
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+
+    setP(80,'차트 그리는 중...');
+    renderSummaryCards(data.summary, data.period);
+    renderTrendChart(data.summary);
+    renderVideoTable(data.videos);
+    renderTrafficChart(data.traffic);
+    await runAnalyticsAI(data, days);
+    setP(100,'완료!');
+
+    document.getElementById('analyticsSummaryCards').classList.remove('hidden');
+    document.getElementById('analyticsCharts').classList.remove('hidden');
+  }catch(e){
+    alert('오류: '+e.message);
+    console.error(e);
+  }
+  loading.classList.add('hidden');
+}
+
+function renderSummaryCards(summary, period){
+  if(!summary||!summary.rows||!summary.rows.length) return;
+  const rows=summary.rows;
+  // headers: day,views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained,subscribersLost,impressions,impressionClickThroughRate
+  const totalViews=rows.reduce((s,r)=>s+(+r[1]||0),0);
+  const totalImpressions=rows.reduce((s,r)=>s+(+r[7]||0),0);
+  const avgCTR=(rows.reduce((s,r)=>s+(+r[8]||0),0)/rows.length*100).toFixed(2);
+  const avgDuration=Math.round(rows.reduce((s,r)=>s+(+r[3]||0),0)/rows.length);
+  const avgViewPct=(rows.reduce((s,r)=>s+(+r[4]||0),0)/rows.length).toFixed(1);
+  const netSubs=rows.reduce((s,r)=>s+(+r[5]||0),0)-rows.reduce((s,r)=>s+(+r[6]||0),0);
+
+  const ctrColor=avgCTR>=5?'stat-ok':avgCTR>=3?'stat-warn':'stat-err';
+  const durMin=Math.floor(avgDuration/60), durSec=avgDuration%60;
+
+  document.getElementById('analyticsSummaryCards').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+      <div class="stat-card"><div class="stat-num">${totalViews.toLocaleString()}</div><div class="stat-label">총 조회수</div></div>
+      <div class="stat-card"><div class="stat-num">${totalImpressions.toLocaleString()}</div><div class="stat-label">총 노출수</div></div>
+      <div class="stat-card"><div class="stat-num ${ctrColor}">${avgCTR}%</div><div class="stat-label">평균 CTR</div></div>
+      <div class="stat-card"><div class="stat-num">${durMin}분 ${durSec}초</div><div class="stat-label">평균 시청시간</div></div>
+      <div class="stat-card"><div class="stat-num">${avgViewPct}%</div><div class="stat-label">평균 시청률</div></div>
+      <div class="stat-card"><div class="stat-num ${netSubs>=0?'stat-ok':'stat-err'}">${netSubs>=0?'+':''}${netSubs}</div><div class="stat-label">구독자 순증감</div></div>
+    </div>
+    <div style="font-size:12px;color:var(--t3);margin-top:8px;">기간: ${period?.startDate||''} ~ ${period?.endDate||''} (${period?.days||'?'}일)</div>`;
+}
+
+function renderTrendChart(summary){
+  if(!summary||!summary.rows||!summary.rows.length) return;
+  const rows=summary.rows;
+  const labels=rows.map(r=>r[0].slice(5)); // MM-DD
+  const views=rows.map(r=>+r[1]||0);
+  const impressions=rows.map(r=>+r[7]||0);
+  const ctrs=rows.map(r=>((+r[8]||0)*100));
+
+  if(analyticsChart) analyticsChart.destroy();
+  const ctx=document.getElementById('chartTrend').getContext('2d');
+  analyticsChart=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'조회수',data:views,borderColor:'#ff0000',backgroundColor:'rgba(255,0,0,0.08)',yAxisID:'y',tension:.3,pointRadius:2},
+        {label:'노출수',data:impressions,borderColor:'#aaa',backgroundColor:'rgba(170,170,170,0.05)',yAxisID:'y',tension:.3,pointRadius:2},
+        {label:'CTR(%)',data:ctrs,borderColor:'#2ba640',backgroundColor:'rgba(43,166,64,0.08)',yAxisID:'y2',tension:.3,pointRadius:2}
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#aaa',font:{size:12}}}},
+      scales:{
+        x:{ticks:{color:'#717171',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'}},
+        y:{ticks:{color:'#aaa',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'},position:'left'},
+        y2:{ticks:{color:'#2ba640',font:{size:11}},grid:{display:false},position:'right'}
+      }
+    }
+  });
+}
+
+function renderVideoTable(videos){
+  if(!videos||!videos.rows||!videos.rows.length) return;
+  // rows: videoId, title, views, watchMin, avgDuration, avgPct, impressions, ctr, likes, comments, subs
+  const sourceNames={'YT_SEARCH':'검색','SUGGESTED_VIDEO':'추천','BROWSE_FEATURES':'홈','EXTERNAL':'외부','NOTIFICATION':'알림','PLAYLIST':'재생목록','DIRECT_OR_UNKNOWN':'직접'};
+  let html=`<table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead><tr style="border-bottom:1px solid var(--border);">
+      <th style="text-align:left;padding:8px 6px;color:var(--t3);font-weight:500;">영상</th>
+      <th style="padding:8px 6px;color:var(--t3);font-weight:500;">조회수</th>
+      <th style="padding:8px 6px;color:var(--t3);font-weight:500;">노출수</th>
+      <th style="padding:8px 6px;color:var(--t3);font-weight:500;">CTR</th>
+      <th style="padding:8px 6px;color:var(--t3);font-weight:500;">평균시청</th>
+      <th style="padding:8px 6px;color:var(--t3);font-weight:500;">시청률</th>
+    </tr></thead><tbody>`;
+  videos.rows.slice(0,10).forEach(r=>{
+    const ctr=((+r[7]||0)*100).toFixed(1);
+    const ctrColor=ctr>=5?'var(--green)':ctr>=3?'#f90':'var(--red)';
+    const dur=+r[4]||0;
+    const durStr=Math.floor(dur/60)+'분 '+(dur%60)+'초';
+    html+=`<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px 6px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);" title="${escHtml(r[1]||'')}">
+        <a href="https://youtube.com/watch?v=${escHtml(r[0])}" target="_blank" style="color:var(--text);text-decoration:none;">${escHtml((r[1]||'').slice(0,35)+(r[1]?.length>35?'…':''))}</a>
+      </td>
+      <td style="padding:8px 6px;text-align:center;color:var(--t2);">${(+r[2]||0).toLocaleString()}</td>
+      <td style="padding:8px 6px;text-align:center;color:var(--t2);">${(+r[6]||0).toLocaleString()}</td>
+      <td style="padding:8px 6px;text-align:center;font-weight:500;color:${ctrColor};">${ctr}%</td>
+      <td style="padding:8px 6px;text-align:center;color:var(--t2);">${durStr}</td>
+      <td style="padding:8px 6px;text-align:center;color:var(--t2);">${(+r[5]||0).toFixed(1)}%</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  document.getElementById('videoTable').innerHTML=html;
+}
+
+function renderTrafficChart(traffic){
+  if(!traffic||!traffic.rows||!traffic.rows.length) return;
+  const sourceNames={'YT_SEARCH':'유튜브 검색','SUGGESTED_VIDEO':'추천 영상','BROWSE_FEATURES':'홈/탐색','EXTERNAL':'외부 사이트','NOTIFICATION':'알림','PLAYLIST':'재생목록','DIRECT_OR_UNKNOWN':'직접','SUBSCRIBER':'구독자 피드','YT_CHANNEL':'채널 페이지','END_SCREEN':'엔드스크린','SHORTS':'쇼츠'};
+  const labels=traffic.rows.map(r=>sourceNames[r[0]]||r[0]);
+  const views=traffic.rows.map(r=>+r[1]||0);
+  const colors=['#ff0000','#cc2200','#ff4444','#ff6666','#ff8888','#ffaaaa','#aaa','#888','#666'];
+
+  if(trafficChart) trafficChart.destroy();
+  const ctx=document.getElementById('chartTraffic').getContext('2d');
+  trafficChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{label:'조회수',data:views,backgroundColor:colors,borderRadius:4}]},
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#aaa',font:{size:11}},grid:{display:false}},
+        y:{ticks:{color:'#aaa',font:{size:11}},grid:{color:'rgba(255,255,255,0.05)'}}
+      }
+    }
+  });
+}
+
+async function runAnalyticsAI(data, days){
+  const claudeKey=localStorage.getItem('dj_claude_key')||'';
+  const el=document.getElementById('analyticsAiContent');
+  if(!claudeKey){el.textContent='AI 분석을 보려면 번역 업로드 탭에서 Claude API Key를 입력해주세요.';return;}
+  el.textContent='분석 중...';
+
+  const rows=data.summary?.rows||[];
+  const totalViews=rows.reduce((s,r)=>s+(+r[1]||0),0);
+  const totalImpressions=rows.reduce((s,r)=>s+(+r[7]||0),0);
+  const avgCTR=(rows.reduce((s,r)=>s+(+r[8]||0),0)/rows.length*100).toFixed(2);
+  const avgDuration=Math.round(rows.reduce((s,r)=>s+(+r[3]||0),0)/rows.length);
+  const avgViewPct=(rows.reduce((s,r)=>s+(+r[4]||0),0)/rows.length).toFixed(1);
+  const netSubs=rows.reduce((s,r)=>s+(+r[5]||0),0)-rows.reduce((s,r)=>s+(+r[6]||0),0);
+
+  const topVideos=(data.videos?.rows||[]).slice(0,5).map(r=>`"${r[1]}" — 조회수:${r[2]}, CTR:${((+r[7]||0)*100).toFixed(1)}%, 평균시청:${Math.floor((+r[4]||0)/60)}분`).join('\n');
+  const trafficSrc=(data.traffic?.rows||[]).slice(0,5).map(r=>`${r[0]}: ${r[1]}회`).join(', ');
+
+  const prompt=`당신은 유튜브 채널 성장 전문가입니다. 최근 ${days}일 Analytics 데이터를 분석해주세요.\n\n📊 채널 지표:\n- 총 조회수: ${totalViews.toLocaleString()}\n- 총 노출수: ${totalImpressions.toLocaleString()}\n- 평균 CTR: ${avgCTR}%\n- 평균 시청시간: ${Math.floor(avgDuration/60)}분 ${avgDuration%60}초\n- 평균 시청률: ${avgViewPct}%\n- 구독자 순증감: ${netSubs}\n\n🎬 인기 영상 TOP 5:\n${topVideos}\n\n🔍 트래픽 소스: ${trafficSrc}\n\n위 데이터를 바탕으로:\n1. 현재 CTR ${avgCTR}%는 어떤 수준인지 평가 (낮으면 원인과 개선법)\n2. 평균 시청시간 ${Math.floor(avgDuration/60)}분 ${avgDuration%60}초 평가 및 개선 방법\n3. 트래픽 소스 구조 분석 — 어떤 소스를 더 키워야 하는지\n4. 즉시 실행 가능한 액션 플랜 3가지 (구체적으로)\n\n이모지를 활용해 가독성 좋게 한국어로 작성해주세요.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await res.json();
+    el.textContent=d.content?.map(c=>c.text||'').join('')||'분석 실패';
+  }catch(e){el.textContent='AI 분석 오류: '+e.message;}
+}
+
+function downloadScript(){
+  alert('스크립트 코드는 별도로 제공된 analytics_script.gs 파일을 사용하세요!');
+}
+// ────────────────────────────────────────────────────────────────
+
+
 async function runAnalysis(){
   if(!token){alert('먼저 로그인해주세요.');return;}
   const btn=document.getElementById('analyzeBtn');
